@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroFlex — Exoesqueleto de Reabilitação</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white:   #FFFFFF;
+      --off:     #F7F7F5;
+      --ink:     #111111;
+      --muted:   #6B6B6B;
+      --border:  #E4E4E0;
+      --accent:  #1A5CFF;
+      --accent2: #E8F0FF;
+      --radius:  12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 60px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px; letter-spacing: -0.5px;
+    }
+    .nav-logo span:first-child { font-weight: 300; }
+    .nav-logo span:last-child  { font-weight: 700; color: var(--accent); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      font-size: 13px; color: var(--muted); text-decoration: none;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+      letter-spacing: 0.02em; transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-badge {
+      font-size: 11px; font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500; color: var(--accent);
+      border: 1px solid var(--accent); border-radius: 20px;
+      padding: 3px 10px; letter-spacing: 0.04em;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 100px 40px 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.18em; color: var(--accent);
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(52px, 9vw, 112px);
+      line-height: 0.95; letter-spacing: -0.04em;
+      max-width: 800px;
+    }
+    .hero-title .light { font-weight: 300; color: var(--ink); }
+    .hero-title .bold  { font-weight: 700; color: var(--accent); }
+    .hero-sub {
+      margin-top: 32px; max-width: 480px;
+      font-size: 16px; color: var(--muted); line-height: 1.7;
+    }
+    .hero-cta {
+      margin-top: 40px; display: flex; gap: 12px; flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-primary {
+      display: inline-block;
+      background: var(--accent); color: #fff;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+      font-size: 14px; letter-spacing: 0.02em;
+      padding: 12px 28px; border-radius: 8px;
+      text-decoration: none; transition: opacity .2s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-ghost {
+      display: inline-block;
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+      font-size: 14px; letter-spacing: 0.02em;
+      padding: 12px 28px; border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none; transition: border-color .2s;
+    }
+    .btn-ghost:hover { border-color: var(--ink); }
+
+    /* EMG signal canvas */
+    #emg-canvas {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      opacity: 0.18; pointer-events: none;
+    }
+
+    /* hero stats */
+    .hero-stats {
+      display: flex; gap: 40px; margin-top: 56px;
+      padding-top: 40px; border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 4px; }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    /* ── SECTIONS COMMON ── */
+    section { padding: 96px 40px; }
+    .section-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.16em; color: var(--accent);
+      text-transform: uppercase; margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700; letter-spacing: -0.03em;
+      line-height: 1.1; max-width: 540px;
+    }
+    .section-body {
+      margin-top: 16px; max-width: 520px;
+      font-size: 15px; color: var(--muted); line-height: 1.75;
+    }
+
+    /* ── SOBRE / PROBLEMA ── */
+    #sobre { background: var(--off); }
+    .sobre-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px; align-items: center;
+      margin-top: 56px;
+    }
+    .sobre-visual {
+      aspect-ratio: 4/3;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    .sobre-diagram { width: 100%; height: 100%; }
+    .problem-list { margin-top: 32px; display: flex; flex-direction: column; gap: 20px; }
+    .problem-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 20px; background: var(--white);
+      border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .problem-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--accent2); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .problem-item h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 500; margin-bottom: 4px;
+    }
+    .problem-item p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── COMO FUNCIONA ── */
+    #funciona { background: var(--white); }
+    .flow-steps {
+      margin-top: 56px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .flow-step {
+      background: var(--white); padding: 28px 24px;
+      position: relative;
+    }
+    .step-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; font-weight: 500; color: var(--accent);
+      letter-spacing: 0.1em; margin-bottom: 12px;
+    }
+    .step-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; margin-bottom: 8px;
+    }
+    .step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── COMPONENTES ── */
+    #componentes { background: var(--off); }
+    .comp-grid {
+      margin-top: 56px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .comp-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      transition: border-color .2s, transform .2s;
+    }
+    .comp-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .comp-tag {
+      display: inline-block; font-size: 10px; font-weight: 500;
+      font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent);
+      background: var(--accent2); border-radius: 4px;
+      padding: 3px 8px; margin-bottom: 14px;
+    }
+    .comp-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; margin-bottom: 6px;
+    }
+    .comp-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    /* ── PROGRESSO ── */
+    #progresso { background: var(--white); }
+    .timeline {
+      margin-top: 56px; display: flex; flex-direction: column;
+      gap: 0; position: relative;
+    }
+    .timeline::before {
+      content: ''; position: absolute; left: 18px; top: 0; bottom: 0;
+      width: 1px; background: var(--border);
+    }
+    .tl-item {
+      display: flex; gap: 32px; align-items: flex-start;
+      padding: 0 0 36px;
+      position: relative;
+    }
+    .tl-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .tl-dot.done { background: var(--accent); border-color: var(--accent); }
+    .tl-dot.active { background: var(--accent2); border-color: var(--accent); }
+    .tl-content { padding-top: 6px; }
+    .tl-phase {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; font-weight: 500; color: var(--muted);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .tl-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px; font-weight: 700; margin-bottom: 6px;
+    }
+    .tl-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .tl-badge {
+      display: inline-block; margin-top: 8px; font-size: 11px;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .badge-done { background: #E8F5E9; color: #2E7D32; }
+    .badge-now  { background: var(--accent2); color: var(--accent); }
+    .badge-next { background: var(--off); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ── GALERIA ── */
+    #galeria { background: var(--off); }
+    .gallery-grid {
+      margin-top: 48px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto auto;
+      gap: 12px;
+    }
+    .gallery-item {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .gallery-item.tall { grid-row: span 2; aspect-ratio: auto; }
+    .gallery-item img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .gallery-placeholder {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px; width: 100%; height: 100%;
+      padding: 20px; text-align: center;
+      background: var(--off);
+    }
+    .gallery-placeholder span { font-size: 28px; }
+    .gallery-placeholder p {
+      font-size: 12px; color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .gallery-caption {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 10px 14px; font-size: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(6px);
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── EQUIPE ── */
+    #equipe { background: var(--white); }
+    .team-grid {
+      margin-top: 48px;
+      display: flex; gap: 24px; flex-wrap: wrap;
+    }
+    .team-card {
+      flex: 1; min-width: 200px; max-width: 260px;
+      background: var(--off); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      text-align: center;
+    }
+    .team-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--accent2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px; font-weight: 700; color: var(--accent);
+      margin: 0 auto 16px;
+    }
+    .team-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; margin-bottom: 4px;
+    }
+    .team-role { font-size: 12px; color: var(--muted); }
+    .team-links { margin-top: 14px; display: flex; gap: 8px; justify-content: center; }
+    .team-link {
+      width: 30px; height: 30px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; text-decoration: none;
+      transition: border-color .2s;
+    }
+    .team-link:hover { border-color: var(--accent); }
+
+    /* orientador card */
+    .advisor-card {
+      margin-top: 40px; padding: 24px 28px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; gap: 20px; align-items: center;
+      background: var(--off);
+    }
+    .advisor-badge {
+      font-size: 10px; font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent2);
+      padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;
+      display: inline-block;
+    }
+    .advisor-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px; font-weight: 700;
+    }
+    .advisor-inst { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 40px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: gap;
+    }
+    .footer-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; letter-spacing: -0.03em;
+    }
+    .footer-logo span:first-child { font-weight: 300; }
+    .footer-logo span:last-child  { font-weight: 700; color: var(--accent); }
+    .footer-copy { font-size: 12px; color: var(--muted); }
+
+    /* ── REVEAL ANIMATION ── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      #hero { padding: 100px 20px 60px; }
+      section { padding: 64px 20px; }
+      .sobre-grid { grid-template-columns: 1fr; gap: 32px; }
+      .gallery-grid { grid-template-columns: 1fr 1fr; }
+      .gallery-item.tall { grid-row: span 1; aspect-ratio: 4/3; }
+      footer { flex-direction: column; gap: 12px; text-align: center; padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span>Neuro</span><span>Flex</span></div>
+  <ul class="nav-links">
+    <li><a href="#sobre">Sobre</a></li>
+    <li><a href="#funciona">Como funciona</a></li>
+    <li><a href="#componentes">Componentes</a></li>
+    <li><a href="#progresso">Progresso</a></li>
+    <li><a href="#galeria">Galeria</a></li>
+    <li><a href="#equipe">Equipe</a></li>
+  </ul>
+  <span class="nav-badge">TCC · Mecatrônica</span>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-eyebrow">ETEC · TCC 2025 · Mecatrônica</p>
+  <h1 class="hero-title">
+    <span class="light">Neuro</span><span class="bold">Flex</span>
+  </h1>
+  <p class="hero-sub">
+    Exoesqueleto de reabilitação para membros superiores — auxilia pacientes com mobilidade reduzida a recuperar movimentos de cotovelo e pulso através de sensores musculares.
+  </p>
+  <div class="hero-cta">
+    <a href="#funciona" class="btn-primary">Como funciona →</a>
+    <a href="#progresso" class="btn-ghost">Ver progresso</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num">2</span>
+      <span class="stat-label">Articulações assistidas</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">EMG</span>
+      <span class="stat-label">Detecção de intenção</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">360°</span>
+      <span class="stat-label">Rotação controlada</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">ETEC</span>
+      <span class="stat-label">Col. Fernando Prestes</span>
+    </div>
+  </div>
+  <canvas id="emg-canvas" height="120"></canvas>
+</section>
+
+<!-- SOBRE -->
+<section id="sobre">
+  <p class="section-eyebrow reveal">O problema</p>
+  <h2 class="section-title reveal">Reabilitação é lenta. Pode ser mais inteligente.</h2>
+  <p class="section-body reveal">
+    Pacientes que sofreram AVC, acidentes ou lesões neurológicas frequentemente perdem a mobilidade dos braços. A fisioterapia tradicional exige presença constante de um terapeuta e limita o ritmo da recuperação.
+  </p>
+  <div class="sobre-grid">
+    <div>
+      <div class="problem-list reveal">
+        <div class="problem-item">
+          <div class="problem-icon">🧠</div>
+          <div>
+            <h4>Lesão neurológica ou muscular</h4>
+            <p>AVC, acidentes e doenças neuromusculares causam perda parcial ou total do controle motor nos membros superiores.</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <div class="problem-icon">⏳</div>
+          <div>
+            <h4>Recuperação demorada</h4>
+            <p>Sessões de fisioterapia convencionais têm ritmo limitado pela disponibilidade de profissionais e cansaço do paciente.</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <div class="problem-icon">🤖</div>
+          <div>
+            <h4>Nossa proposta</h4>
+            <p>Um dispositivo que detecta a intenção de movimento pelo sinal muscular e aplica força assistida — o paciente esforça, o NeuroFlex amplifica.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sobre-visual reveal">
+      <svg class="sobre-diagram" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- arm outline -->
+        <rect x="60" y="100" width="180" height="55" rx="28" fill="#EBF2FF" stroke="#1A5CFF" stroke-width="1.5"/>
+        <!-- forearm -->
+        <rect x="220" y="110" width="120" height="40" rx="20" fill="#EBF2FF" stroke="#1A5CFF" stroke-width="1.5"/>
+        <!-- elbow joint -->
+        <circle cx="225" cy="130" r="16" fill="#1A5CFF" opacity="0.15" stroke="#1A5CFF" stroke-width="1.5"/>
+        <circle cx="225" cy="130" r="5" fill="#1A5CFF"/>
+        <!-- wrist joint -->
+        <circle cx="340" cy="130" r="12" fill="#1A5CFF" opacity="0.15" stroke="#1A5CFF" stroke-width="1.5"/>
+        <circle cx="340" cy="130" r="4" fill="#1A5CFF"/>
+        <!-- sensor dots on arm -->
+        <rect x="90" y="108" width="28" height="14" rx="4" fill="#E8593C" opacity="0.85"/>
+        <rect x="130" y="108" width="28" height="14" rx="4" fill="#E8593C" opacity="0.85"/>
+        <rect x="240" y="113" width="22" height="12" rx="4" fill="#E8593C" opacity="0.85"/>
+        <!-- sensor labels -->
+        <text x="104" y="116" text-anchor="middle" font-size="7" fill="white" font-family="Space Grotesk,sans-serif" font-weight="600">EMG</text>
+        <text x="144" y="116" text-anchor="middle" font-size="7" fill="white" font-family="Space Grotesk,sans-serif" font-weight="600">EMG</text>
+        <text x="251" y="120" text-anchor="middle" font-size="7" fill="white" font-family="Space Grotesk,sans-serif" font-weight="600">EMG</text>
+        <!-- labels -->
+        <text x="150" y="88" text-anchor="middle" font-size="11" fill="#1A5CFF" font-family="Space Grotesk,sans-serif" font-weight="600">Braço superior</text>
+        <text x="290" y="165" text-anchor="middle" font-size="11" fill="#1A5CFF" font-family="Space Grotesk,sans-serif" font-weight="600">Antebraço</text>
+        <text x="225" y="170" text-anchor="middle" font-size="10" fill="#6B6B6B" font-family="Space Grotesk,sans-serif">Cotovelo</text>
+        <text x="340" y="162" text-anchor="middle" font-size="10" fill="#6B6B6B" font-family="Space Grotesk,sans-serif">Pulso</text>
+        <!-- motor arrows -->
+        <path d="M225 148 Q210 185 200 185" stroke="#F39C12" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+        <text x="188" y="195" text-anchor="middle" font-size="10" fill="#F39C12" font-family="Space Grotesk,sans-serif" font-weight="600">Motor 1</text>
+        <path d="M340 143 Q330 182 320 185" stroke="#F39C12" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+        <text x="310" y="197" text-anchor="middle" font-size="10" fill="#F39C12" font-family="Space Grotesk,sans-serif" font-weight="600">Motor 2</text>
+        <!-- flex arrow -->
+        <path d="M340 118 Q360 95 355 75" stroke="#2ECC71" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#2ECC71" stroke-width="1.5"/>
+          </marker>
+        </defs>
+        <text x="362" y="68" font-size="10" fill="#2ECC71" font-family="Space Grotesk,sans-serif" font-weight="600">Flexão</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="funciona">
+  <p class="section-eyebrow reveal">Funcionamento</p>
+  <h2 class="section-title reveal">Do sinal muscular ao movimento assistido</h2>
+  <p class="section-body reveal">O paciente tenta mover o braço. Os sensores captam o sinal elétrico gerado pelo músculo — mesmo que o movimento não aconteça — e o sistema aplica a força necessária.</p>
+  <div class="flow-steps reveal">
+    <div class="flow-step">
+      <p class="step-num">01</p>
+      <p class="step-title">Intenção</p>
+      <p class="step-desc">O paciente tenta fazer o movimento. Os músculos geram um sinal elétrico fraco, mesmo sem mobilidade.</p>
+    </div>
+    <div class="flow-step">
+      <p class="step-num">02</p>
+      <p class="step-title">Sensor EMG</p>
+      <p class="step-desc">Eletrodos de superfície colados na pele captam o sinal mioelétrico do bíceps e do antebraço.</p>
+    </div>
+    <div class="flow-step">
+      <p class="step-num">03</p>
+      <p class="step-title">Processamento</p>
+      <p class="step-desc">O microcontrolador lê e filtra o sinal, identifica a direção e intensidade da intenção de movimento.</p>
+    </div>
+    <div class="flow-step">
+      <p class="step-num">04</p>
+      <p class="step-title">Atuação</p>
+      <p class="step-desc">Os motores aplicam torque nas articulações do cotovelo e pulso, completando ou auxiliando o movimento.</p>
+    </div>
+    <div class="flow-step">
+      <p class="step-num">05</p>
+      <p class="step-title">Retorno</p>
+      <p class="step-desc">O dispositivo retorna à posição inicial suavemente, preparando o paciente para a próxima repetição.</p>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTES -->
+<section id="componentes">
+  <p class="section-eyebrow reveal">Hardware</p>
+  <h2 class="section-title reveal">Componentes do sistema</h2>
+  <p class="section-body reveal">Uma combinação de eletrônica acessível e estrutura mecânica projetada para segurança e precisão.</p>
+  <div class="comp-grid reveal">
+    <div class="comp-card">
+      <span class="comp-tag">Sensoriamento</span>
+      <p class="comp-name">Sensor EMG</p>
+      <p class="comp-desc">Eletrodos de superfície captam o sinal mioelétrico dos músculos. Módulo MyoWare 2.0 ou equivalente com amplificação integrada.</p>
+    </div>
+    <div class="comp-card">
+      <span class="comp-tag">Processamento</span>
+      <p class="comp-name">Microcontrolador</p>
+      <p class="comp-desc">Arduino Mega ou ESP32 para leitura analógica dos sensores, processamento do sinal e controle dos atuadores em tempo real.</p>
+    </div>
+    <div class="comp-card">
+      <span class="comp-tag">Atuação</span>
+      <p class="comp-name">Servomotores</p>
+      <p class="comp-desc">Dois servos ou motores DC com encoder: um para o cotovelo (torque ~10 kg·cm) e um para o pulso. Driver L298N ou TB6612.</p>
+    </div>
+    <div class="comp-card">
+      <span class="comp-tag">Estrutura</span>
+      <p class="comp-name">Exoesqueleto</p>
+      <p class="comp-desc">Trilho de alumínio perfil 2020 ou impressão 3D em PETG, com articulações nos eixos do cotovelo e pulso. Faixas de velcro para fixação.</p>
+    </div>
+    <div class="comp-card">
+      <span class="comp-tag">Alimentação</span>
+      <p class="comp-name">Fonte 12V</p>
+      <p class="comp-desc">Fonte de bancada 12V/5A para os motores com regulador step-down 5V para a lógica. Protótipo com fio; versão final com bateria LiPo.</p>
+    </div>
+    <div class="comp-card">
+      <span class="comp-tag">Software</span>
+      <p class="comp-name">Firmware</p>
+      <p class="comp-desc">Código em C++ (Arduino IDE) com filtro passa-baixa digital, limiar adaptativo de ativação e controle PID de posição angular.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESSO -->
+<section id="progresso">
+  <p class="section-eyebrow reveal">Linha do tempo</p>
+  <h2 class="section-title reveal">Onde estamos no projeto</h2>
+  <p class="section-body reveal">Acompanhe as etapas do desenvolvimento — do protótipo em papelão à versão final funcional.</p>
+  <div class="timeline">
+    <div class="tl-item reveal">
+      <div class="tl-dot done">✓</div>
+      <div class="tl-content">
+        <p class="tl-phase">Fase 1</p>
+        <p class="tl-title">Definição do problema e pesquisa</p>
+        <p class="tl-desc">Levantamento bibliográfico sobre reabilitação, exoesqueletos existentes e viabilidade técnica. Definição do escopo: cotovelo + pulso com sensores EMG.</p>
+        <span class="tl-badge badge-done">✓ Concluído</span>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-dot done">✓</div>
+      <div class="tl-content">
+        <p class="tl-phase">Fase 2</p>
+        <p class="tl-title">Protótipo conceitual em papelão</p>
+        <p class="tl-desc">Maquete física para validar a ideia do mecanismo de flexão, posicionamento dos sensores e ergonomia básica do apoio do braço.</p>
+        <span class="tl-badge badge-done">✓ Concluído</span>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-dot active">→</div>
+      <div class="tl-content">
+        <p class="tl-phase">Fase 3 · Em andamento</p>
+        <p class="tl-title">Projeto mecânico e eletrônico</p>
+        <p class="tl-desc">Definição dos componentes, projeto das articulações, seleção dos motores e sensores. Início da montagem da estrutura definitiva.</p>
+        <span class="tl-badge badge-now">⟳ Em andamento</span>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-dot">·</div>
+      <div class="tl-content">
+        <p class="tl-phase">Fase 4</p>
+        <p class="tl-title">Montagem e integração</p>
+        <p class="tl-desc">Montagem da estrutura física, instalação dos motores, fiação e integração com a placa de controle. Primeiros testes de movimento.</p>
+        <span class="tl-badge badge-next">Próxima</span>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-dot">·</div>
+      <div class="tl-content">
+        <p class="tl-phase">Fase 5</p>
+        <p class="tl-title">Desenvolvimento do firmware</p>
+        <p class="tl-desc">Programação do microcontrolador: leitura dos sensores EMG, filtragem do sinal, lógica de decisão e controle dos atuadores.</p>
+        <span class="tl-badge badge-next">Planejada</span>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-dot">·</div>
+      <div class="tl-content">
+        <p class="tl-phase">Fase 6</p>
+        <p class="tl-title">Testes, ajustes e apresentação</p>
+        <p class="tl-desc">Validação funcional do dispositivo completo, refinamentos de segurança e preparação da documentação e apresentação final do TCC.</p>
+        <span class="tl-badge badge-next">Planejada</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALERIA -->
+<section id="galeria">
+  <p class="section-eyebrow reveal">Registro</p>
+  <h2 class="section-title reveal">Galeria do projeto</h2>
+  <p class="section-body reveal">Fotos do desenvolvimento — do primeiro protótipo em papelão às próximas etapas.</p>
+  <div class="gallery-grid reveal">
+    <div class="gallery-item tall">
+      <!-- Substitua o src pela foto real -->
+      <img src="fotos/prototipo-lateral.jpg" alt="Protótipo lateral"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="gallery-placeholder" style="display:none">
+        <span>📷</span>
+        <p>Adicione: fotos/prototipo-lateral.jpg</p>
+      </div>
+      <div class="gallery-caption">Protótipo em papelão — vista lateral</div>
+    </div>
+    <div class="gallery-item">
+      <img src="fotos/prototipo-frente.jpg" alt="Protótipo frente"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="gallery-placeholder" style="display:none">
+        <span>📷</span>
+        <p>Adicione: fotos/prototipo-frente.jpg</p>
+      </div>
+      <div class="gallery-caption">Vista frontal — mecanismo de articulação</div>
+    </div>
+    <div class="gallery-item">
+      <img src="fotos/teste-braco.jpg" alt="Teste com braço"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="gallery-placeholder" style="display:none">
+        <span>📷</span>
+        <p>Adicione: fotos/teste-braco.jpg</p>
+      </div>
+      <div class="gallery-caption">Teste de encaixe e ergonomia</div>
+    </div>
+    <div class="gallery-item">
+      <img src="fotos/detalhe-articulacao.jpg" alt="Detalhe articulação"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="gallery-placeholder" style="display:none">
+        <span>📷</span>
+        <p>Adicione: fotos/detalhe-articulacao.jpg</p>
+      </div>
+      <div class="gallery-caption">Detalhe — articulação do pulso</div>
+    </div>
+    <div class="gallery-item">
+      <img src="fotos/equipe-lab.jpg" alt="Equipe no laboratório"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="gallery-placeholder" style="display:none">
+        <span>📷</span>
+        <p>Adicione: fotos/equipe-lab.jpg</p>
+      </div>
+      <div class="gallery-caption">Equipe no laboratório — ETEC</div>
+    </div>
+  </div>
+</section>
+
+<!-- EQUIPE -->
+<section id="equipe">
+  <p class="section-eyebrow reveal">Quem fez</p>
+  <h2 class="section-title reveal">Equipe</h2>
+  <p class="section-body reveal">Estudantes do curso de Mecatrônica da ETEC Col. Fernando Prestes.</p>
+  <div class="team-grid reveal">
+    <!-- Adicione os membros reais aqui -->
+    <div class="team-card">
+      <div class="team-avatar">A</div>
+      <p class="team-name">Aluno 1</p>
+      <p class="team-role">Mecânica & Estrutura</p>
+      <div class="team-links">
+        <a href="#" class="team-link" title="GitHub">⌨</a>
+        <a href="#" class="team-link" title="LinkedIn">in</a>
+      </div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">B</div>
+      <p class="team-name">Aluno 2</p>
+      <p class="team-role">Eletrônica & Sensores</p>
+      <div class="team-links">
+        <a href="#" class="team-link" title="GitHub">⌨</a>
+        <a href="#" class="team-link" title="LinkedIn">in</a>
+      </div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">C</div>
+      <p class="team-name">Aluno 3</p>
+      <p class="team-role">Firmware & Controle</p>
+      <div class="team-links">
+        <a href="#" class="team-link" title="GitHub">⌨</a>
+        <a href="#" class="team-link" title="LinkedIn">in</a>
+      </div>
+    </div>
+  </div>
+  <div class="advisor-card reveal">
+    <div class="team-avatar" style="flex-shrink:0">P</div>
+    <div>
+      <span class="advisor-badge">Orientador</span>
+      <p class="advisor-name">Prof. Nome do Orientador</p>
+      <p class="advisor-inst">ETEC Col. Fernando Prestes · Curso de Mecatrônica</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><span>Neuro</span><span>Flex</span></div>
+  <p class="footer-copy">TCC 2025 · ETEC Col. Fernando Prestes · Mecatrônica</p>
+</footer>
+
+<script>
+  // EMG signal animation in hero
+  (function() {
+    const canvas = document.getElementById('emg-canvas');
+    const ctx = canvas.getContext('2d');
+    let t = 0;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function emgVal(x, t) {
+      const base = Math.sin(x * 0.018 + t) * 0.3 + Math.sin(x * 0.04 + t * 1.3) * 0.2;
+      const spike = Math.exp(-Math.pow(((x + t * 80) % 320 - 160), 2) / 400) * 1.4;
+      return base + spike;
+    }
+
+    function draw() {
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.beginPath();
+      ctx.moveTo(0, H / 2);
+      for (let x = 0; x < W; x++) {
+        const y = H / 2 - emgVal(x, t) * H * 0.32;
+        ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#1A5CFF';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      t += 0.012;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
